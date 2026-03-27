@@ -1,64 +1,376 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useMemo, useState } from "react";
+
+type SampleKey = "fintech" | "museum" | "creative";
+
+type Diagnosis = {
+  metrics: readonly [string, number][];
+  verdictTitle: string;
+  verdictBody: string;
+  feelsAlive: string;
+  feelsGeneric: string;
+  pushFurther: string;
+  interpretiveLogs: string[];
+};
+
+const samples: Record<SampleKey, string> = {
+  fintech: "A fintech for the invisible rhythm of the real economy.",
+  museum:
+    "A museum interface that reveals how algorithms frame what we see.",
+  creative:
+    "A creative direction tool that evaluates whether an idea feels alive or just correct.",
+};
+
+const diagnoses: Record<SampleKey, Diagnosis> = {
+  fintech: {
+    metrics: [
+      ["Clarity", 82],
+      ["Originality", 66],
+      ["Symbolic Density", 73],
+      ["Generic AI Risk", 38],
+      ["Cultural Specificity", 49],
+      ["System Potential", 84],
+      ["Human Weirdness", 58],
+      ["Memorability", 71],
+    ],
+    verdictTitle: "Promising, but still partially generic.",
+    verdictBody:
+      "The idea has a strong conceptual frame and clear system potential, but the phrasing still leans on abstraction. It suggests a bigger world than the current wording can fully sustain.",
+    feelsAlive:
+      "The expression points to something infrastructural, rhythmic and social. It hints at a larger ecosystem instead of a single product feature.",
+    feelsGeneric:
+      'Terms like "real economy" and "invisible rhythm" are evocative, but still broad. Without one observed image, the language risks sounding more intelligent than embodied.',
+    pushFurther:
+      "Replace one abstract term with a concrete scene, behavior or cultural trace. Let one specific image carry the concept instead of explaining it from above.",
+    interpretiveLogs: [
+      "> input received",
+      "> reading semantic structure",
+      "> checking density of abstraction",
+      "> detecting traces of financial-tech cliche",
+      "> signal found: systemic framing",
+      "> signal found: strong directional potential",
+      "> warning: low observed specificity",
+      "> recommendation: add one situated image and rerun",
+    ],
+  },
+  museum: {
+    metrics: [
+      ["Clarity", 78],
+      ["Originality", 81],
+      ["Symbolic Density", 76],
+      ["Generic AI Risk", 24],
+      ["Cultural Specificity", 62],
+      ["System Potential", 79],
+      ["Human Weirdness", 64],
+      ["Memorability", 74],
+    ],
+    verdictTitle: "Strong framing, with room for more friction.",
+    verdictBody:
+      "This concept already reveals a sharp critical stance. It frames interface as mediation, not neutrality, which gives it depth and relevance.",
+    feelsAlive:
+      "The idea shifts the museum from archive to active lens. That makes the concept feel contemporary and intellectually alive.",
+    feelsGeneric:
+      "The phrase still speaks at a relatively high level. It could gain more bite through one sharper example of algorithmic framing in practice.",
+    pushFurther:
+      "Introduce one concrete scene: ranking, recommendation, omission or distortion. Let the concept show where framing actually happens.",
+    interpretiveLogs: [
+      "> input received",
+      "> scanning institutional tone",
+      "> evaluating conceptual sharpness",
+      "> signal found: critical framing",
+      "> signal found: relevance to interface culture",
+      "> warning: medium abstraction level",
+      "> recommendation: add one visible algorithmic behavior",
+    ],
+  },
+  creative: {
+    metrics: [
+      ["Clarity", 86],
+      ["Originality", 77],
+      ["Symbolic Density", 69],
+      ["Generic AI Risk", 19],
+      ["Cultural Specificity", 53],
+      ["System Potential", 88],
+      ["Human Weirdness", 67],
+      ["Memorability", 76],
+    ],
+    verdictTitle: "Clear, contemporary and highly buildable.",
+    verdictBody:
+      "The proposition is legible and useful right away. It translates a fuzzy creative intuition into a system that could actually help teams evaluate ideas.",
+    feelsAlive:
+      "The contrast between 'alive' and 'correct' creates a strong interpretive tension. It feels both practical and philosophical.",
+    feelsGeneric:
+      "The concept could still become more distinctive through a clearer point of view on who is judging and under what pressures.",
+    pushFurther:
+      "Specify the context: agency, brand team, researcher, art director. That extra layer would make the console feel even more situated and ownable.",
+    interpretiveLogs: [
+      "> input received",
+      "> parsing evaluative contrast",
+      "> checking product usefulness",
+      "> signal found: strong practical relevance",
+      "> signal found: memorable conceptual tension",
+      "> warning: context could be more situated",
+      "> recommendation: define user and evaluation scenario",
+    ],
+  },
+};
+
+const heroLogs = [
+  "> parsing symbolic structure...",
+  "> checking cliche density...",
+  "> scanning for cultural specificity...",
+  "> estimating system potential...",
+  "> reading human weirdness...",
+];
+
+export default function JudgmentConsole() {
+  const [inputValue, setInputValue] = useState(samples.fintech);
+  const [activeSample, setActiveSample] = useState<SampleKey>("fintech");
+  const [diagnosisKey, setDiagnosisKey] = useState<SampleKey>("fintech");
+
+  const currentDiagnosis = useMemo(() => {
+    return diagnoses[diagnosisKey];
+  }, [diagnosisKey]);
+
+  function handleLoadSample(key: SampleKey) {
+    setActiveSample(key);
+    setInputValue(samples[key]);
+  }
+
+  function handleClear() {
+    setInputValue("");
+  }
+
+  function handleRunDiagnosis() {
+    const normalized = inputValue.toLowerCase();
+
+    if (
+      normalized.includes("museum") ||
+      normalized.includes("algorithm") ||
+      normalized.includes("frame what we see")
+    ) {
+      setDiagnosisKey("museum");
+      return;
+    }
+
+    if (
+      normalized.includes("creative direction") ||
+      normalized.includes("alive") ||
+      normalized.includes("correct")
+    ) {
+      setDiagnosisKey("creative");
+      return;
+    }
+
+    setDiagnosisKey("fintech");
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-lime-300/30 selection:text-lime-100">
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.08]"
+        aria-hidden="true"
+      >
+        <div className="h-full w-full bg-[linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:36px_36px]" />
+      </div>
+
+      <main className="relative mx-auto flex max-w-7xl flex-col gap-8 px-6 py-8 md:px-8 lg:px-10">
+        <header className="rounded-3xl border border-zinc-800 bg-zinc-900/70 p-6 shadow-2xl shadow-black/20 backdrop-blur">
+          <div className="mb-4 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-zinc-400">
+            <span className="rounded-full border border-zinc-700 px-3 py-1">
+              Judgment Console
+            </span>
+            <span className="rounded-full border border-lime-500/30 bg-lime-500/10 px-3 py-1 text-lime-300">
+              v1.1 interactive prototype
+            </span>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
+            <div>
+              <h1 className="max-w-4xl text-3xl font-semibold leading-tight text-zinc-50 md:text-5xl md:leading-[1.05]">
+                A small interface for evaluating ideas in the age of infinite generation.
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-zinc-400 md:text-base">
+                Instead of asking what AI can generate, this console asks a more
+                interesting question: what still depends on human judgment?
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4 font-mono text-xs leading-6 text-zinc-400">
+              {heroLogs.map((log) => (
+                <div key={log}>{log}</div>
+              ))}
+            </div>
+          </div>
+        </header>
+
+        <section className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <div>
+                <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-zinc-500">
+                  Input
+                </p>
+                <h2 className="mt-2 text-xl font-semibold text-zinc-100">
+                  Paste an idea, line or concept
+                </h2>
+              </div>
+              <div className="hidden rounded-full border border-zinc-700 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-400 md:block">
+                text diagnosis
+              </div>
+            </div>
+
+            <textarea
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              className="min-h-[280px] w-full rounded-2xl border border-zinc-800 bg-black/40 p-5 font-mono text-sm leading-7 text-zinc-200 outline-none ring-0 placeholder:text-zinc-600 focus:border-lime-400/40"
+              placeholder="Paste an idea, concept, line or prompt..."
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              <button
+                onClick={handleRunDiagnosis}
+                className="rounded-2xl border border-lime-400/40 bg-lime-400/10 px-4 py-2 text-sm font-medium text-lime-200 transition hover:bg-lime-400/20"
+              >
+                Run diagnosis
+              </button>
+              <button
+                onClick={() => handleLoadSample(activeSample)}
+                className="rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-zinc-100"
+              >
+                Load sample
+              </button>
+              <button
+                onClick={handleClear}
+                className="rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-zinc-100"
+              >
+                Clear
+              </button>
+            </div>
+
+            <div className="mt-8">
+              <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.28em] text-zinc-500">
+                Sample prompts
+              </p>
+              <div className="grid gap-3">
+                {(Object.entries(samples) as [SampleKey, string][]).map(
+                  ([key, sample]) => (
+                    <button
+                      key={key}
+                      onClick={() => handleLoadSample(key)}
+                      className={`rounded-2xl border px-4 py-4 text-left text-sm leading-6 transition ${
+                        activeSample === key
+                          ? "border-lime-400/40 bg-lime-400/10 text-lime-100"
+                          : "border-zinc-800 bg-black/20 text-zinc-300 hover:border-zinc-600 hover:bg-black/30"
+                      }`}
+                    >
+                      {sample}
+                    </button>
+                  ),
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-6">
+            <section className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
+              <div className="mb-5 flex items-end justify-between gap-4">
+                <div>
+                  <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-zinc-500">
+                    Metrics
+                  </p>
+                  <h2 className="mt-2 text-xl font-semibold text-zinc-100">
+                    Diagnostic reading
+                  </h2>
+                </div>
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-500">
+                  live sample state
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                {currentDiagnosis.metrics.map(([label, value]) => (
+                  <div key={label}>
+                    <div className="mb-2 flex items-center justify-between text-sm text-zinc-300">
+                      <span>{label}</span>
+                      <span className="font-mono text-xs text-zinc-500">
+                        {value}/100
+                      </span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-lime-300 via-zinc-100 to-lime-200 transition-all duration-500"
+                        style={{ width: `${value}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
+              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-zinc-500">
+                Verdict
+              </p>
+              <div className="mt-4 space-y-5 text-sm leading-7 text-zinc-300">
+                <div>
+                  <h3 className="mb-1 text-base font-semibold text-zinc-100">
+                    {currentDiagnosis.verdictTitle}
+                  </h3>
+                  <p>{currentDiagnosis.verdictBody}</p>
+                </div>
+                <div>
+                  <p className="mb-1 font-medium text-zinc-100">
+                    What feels alive
+                  </p>
+                  <p>{currentDiagnosis.feelsAlive}</p>
+                </div>
+                <div>
+                  <p className="mb-1 font-medium text-zinc-100">
+                    What feels generic
+                  </p>
+                  <p>{currentDiagnosis.feelsGeneric}</p>
+                </div>
+                <div>
+                  <p className="mb-1 font-medium text-zinc-100">
+                    Push further
+                  </p>
+                  <p>{currentDiagnosis.pushFurther}</p>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
+          <div className="mb-5 flex items-end justify-between gap-4">
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-zinc-500">
+                Console
+              </p>
+              <h2 className="mt-2 text-xl font-semibold text-zinc-100">
+                Interpretive log
+              </h2>
+            </div>
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-500">
+              human-in-the-loop
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-zinc-800 bg-black/40 p-5 font-mono text-xs leading-7 text-zinc-400 md:text-sm">
+            {currentDiagnosis.interpretiveLogs.map((log) => (
+              <div
+                key={log}
+                className={
+                  log.includes("recommendation") ? "text-lime-300" : undefined
+                }
+              >
+                {log}
+              </div>
+            ))}
+          </div>
+        </section>
       </main>
     </div>
   );
