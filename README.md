@@ -67,4 +67,10 @@ They are meant to make **judgment more legible**.
 Run the development server:
 
 ```bash
-npm run dev
+npm run dev 
+```
+
+---
+
+An ongoing study by Andrê  
+on judgment, design systems, and human-AI interaction.
