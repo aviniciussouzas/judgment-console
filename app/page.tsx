@@ -167,6 +167,7 @@ export default function JudgmentConsole() {
   }
 
   return (
+
     <div className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-lime-300/30 selection:text-lime-100">
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.08]"
@@ -174,7 +175,9 @@ export default function JudgmentConsole() {
       >
         <div className="h-full w-full bg-[linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:36px_36px]" />
       </div>
-
+      <p className="text-[10px] text-zinc-600 uppercase tracking-widest">
+        v0.1.1 — experimental interface
+      </p>
       <main className="relative mx-auto flex max-w-7xl flex-col gap-8 px-6 py-8 md:px-8 lg:px-10">
         <header className="rounded-3xl border border-zinc-800 bg-zinc-900/70 p-6 shadow-2xl shadow-black/20 backdrop-blur">
           <div className="mb-4 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-zinc-400">
@@ -191,9 +194,8 @@ export default function JudgmentConsole() {
               <h1 className="max-w-4xl text-3xl font-semibold leading-tight text-zinc-50 md:text-5xl md:leading-[1.05]">
                 A small interface for evaluating ideas in the age of infinite generation.
               </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-zinc-400 md:text-base">
-                Instead of asking what AI can generate, this console asks a more
-                interesting question: what still depends on human judgment?
+              <p className="text-xs text-zinc-500 mt-1">
+                A speculative interface for creative evaluation
               </p>
             </div>
 
@@ -213,7 +215,7 @@ export default function JudgmentConsole() {
                   Input
                 </p>
                 <h2 className="mt-2 text-xl font-semibold text-zinc-100">
-                  Paste an idea, line or concept
+                  Describe an idea, concept or direction...
                 </h2>
               </div>
               <div className="hidden rounded-full border border-zinc-700 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-400 md:block">
@@ -233,7 +235,7 @@ export default function JudgmentConsole() {
                 onClick={handleRunDiagnosis}
                 className="rounded-2xl border border-lime-400/40 bg-lime-400/10 px-4 py-2 text-sm font-medium text-lime-200 transition hover:bg-lime-400/20"
               >
-                Run diagnosis
+                Run evaluation
               </button>
               <button
                 onClick={() => handleLoadSample(activeSample)}
@@ -368,10 +370,50 @@ export default function JudgmentConsole() {
               >
                 {log}
               </div>
+
             ))}
           </div>
+
+ <div id="about" className="mt-12 max-w-xl text-sm text-zinc-400">
+    <p>
+      Judgment Console is a conceptual interface exploring how creative judgment
+      might become more legible in the age of generative abundance.
+    </p>
+
+    <p className="mt-3">
+      Instead of generating ideas, this experiment focuses on evaluating them —
+      making subjective criteria slightly more visible, structured, and navigable.
+    </p>
+  </div>
+
+          <div className="mt-16 text-xs text-zinc-500 border-t border-zinc-800 pt-6">
+  <p>
+    An ongoing study by <span className="text-zinc-300">Andrê</span>
+  </p>
+  <p className="mt-1">
+    On judgment, design systems, and human–AI interaction
+  </p>
+
+  <div className="mt-3 flex gap-4">
+    <a
+      href="https://github.com/aviniciussouzas/judgment-console"
+      target="_blank"
+      className="hover:text-zinc-300 underline"
+    >
+      GitHub
+    </a>
+
+    <a
+      href="#about"
+      className="hover:text-zinc-300 underline"
+    >
+      About
+    </a>
+  </div>
+</div>
         </section>
       </main>
     </div>
+    
   );
 }
