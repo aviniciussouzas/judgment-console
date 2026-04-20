@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type SampleKey = "fintech" | "museum" | "creative";
+type MetricRow = readonly [string, number];
 
 type Diagnosis = {
-  metrics: readonly [string, number][];
+  metrics: readonly MetricRow[];
   verdictTitle: string;
   verdictBody: string;
   feelsAlive: string;
@@ -124,14 +125,73 @@ const heroLogs = [
   "> reading human weirdness...",
 ];
 
+function delay(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
+
+function randomBetween(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function detectDiagnosisKey(input: string): SampleKey {
+  const normalized = input.toLowerCase();
+
+  if (
+    normalized.includes("museum") ||
+    normalized.includes("algorithm") ||
+    normalized.includes("frame what we see")
+  ) {
+    return "museum";
+  }
+
+  if (
+    normalized.includes("creative direction") ||
+    normalized.includes("alive") ||
+    normalized.includes("correct")
+  ) {
+    return "creative";
+  }
+
+  return "fintech";
+}
+
+function jitterMetrics(metrics: readonly MetricRow[]): readonly MetricRow[] {
+  return metrics.map(([label, value]) => {
+    const variation = Math.floor(Math.random() * 21) - 10;
+    const nextValue = Math.max(8, Math.min(96, value + variation));
+    return [label, nextValue] as const;
+  });
+}
+
 export default function JudgmentConsole() {
   const [inputValue, setInputValue] = useState(samples.fintech);
   const [activeSample, setActiveSample] = useState<SampleKey>("fintech");
   const [diagnosisKey, setDiagnosisKey] = useState<SampleKey>("fintech");
 
-  const currentDiagnosis = useMemo(() => {
-    return diagnoses[diagnosisKey];
-  }, [diagnosisKey]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [visibleLogs, setVisibleLogs] = useState<string[]>([]);
+  const [showCursor, setShowCursor] = useState(true);
+
+  const [displayedMetrics, setDisplayedMetrics] = useState<
+    readonly MetricRow[]
+  >(diagnoses.fintech.metrics);
+  const [metricsStatus, setMetricsStatus] = useState("live sample state");
+
+  const currentDiagnosis = useMemo(() => diagnoses[diagnosisKey], [diagnosisKey]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setShowCursor((prev) => !prev);
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (!isProcessing) {
+      setDisplayedMetrics(currentDiagnosis.metrics);
+    }
+  }, [currentDiagnosis, isProcessing]);
 
   function handleLoadSample(key: SampleKey) {
     setActiveSample(key);
@@ -142,66 +202,92 @@ export default function JudgmentConsole() {
     setInputValue("");
   }
 
-  function handleRunDiagnosis() {
-    const normalized = inputValue.toLowerCase();
+  async function handleRunDiagnosis() {
+    if (isProcessing || !inputValue.trim()) return;
 
-    if (
-      normalized.includes("museum") ||
-      normalized.includes("algorithm") ||
-      normalized.includes("frame what we see")
-    ) {
-      setDiagnosisKey("museum");
-      return;
+    setIsProcessing(true);
+    setVisibleLogs([]);
+
+    const selected = detectDiagnosisKey(inputValue);
+    const selectedDiagnosis = diagnoses[selected];
+    const logs = selectedDiagnosis.interpretiveLogs;
+
+    setMetricsStatus("calibrating interpretive thresholds...");
+
+    const metricInterval = setInterval(() => {
+      setDisplayedMetrics(jitterMetrics(selectedDiagnosis.metrics));
+    }, 220);
+
+    for (let i = 0; i < logs.length; i++) {
+      if (i === Math.floor(logs.length / 3)) {
+        setMetricsStatus("reading signal distribution...");
+      }
+
+      if (i === Math.floor((logs.length * 2) / 3)) {
+        setMetricsStatus("stabilizing diagnostic output...");
+      }
+
+      await delay(randomBetween(350, 850));
+      setVisibleLogs((prev) => [...prev, logs[i]]);
     }
 
-    if (
-      normalized.includes("creative direction") ||
-      normalized.includes("alive") ||
-      normalized.includes("correct")
-    ) {
-      setDiagnosisKey("creative");
-      return;
-    }
+    clearInterval(metricInterval);
 
-    setDiagnosisKey("fintech");
+    setDisplayedMetrics(selectedDiagnosis.metrics);
+    await delay(350);
+
+    setDiagnosisKey(selected);
+    setMetricsStatus("diagnostic locked");
+    setIsProcessing(false);
   }
 
-  return (
+  const displayedLogs = isProcessing
+    ? visibleLogs
+    : currentDiagnosis.interpretiveLogs;
 
+  return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-lime-300/30 selection:text-lime-100">
       <div
-        className="absolute inset-0 pointer-events-none opacity-[0.08]"
+        className="pointer-events-none absolute inset-0 opacity-[0.08]"
         aria-hidden="true"
       >
         <div className="h-full w-full bg-[linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:36px_36px]" />
       </div>
-      <p className="text-[10px] text-zinc-600 uppercase tracking-widest">
-        v0.1.1 — experimental interface
-      </p>
+
       <main className="relative mx-auto flex max-w-7xl flex-col gap-8 px-6 py-8 md:px-8 lg:px-10">
+        <p className="text-[10px] uppercase tracking-widest text-zinc-600">
+          v0.1.1 — experimental interface
+        </p>
+
         <header className="rounded-3xl border border-zinc-800 bg-zinc-900/70 p-6 shadow-2xl shadow-black/20 backdrop-blur">
           <div className="mb-4 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-zinc-400">
             <span className="rounded-full border border-zinc-700 px-3 py-1">
               Judgment Console
             </span>
             <span className="rounded-full border border-lime-500/30 bg-lime-500/10 px-3 py-1 text-lime-300">
-              v1.1 interactive prototype
+              v0.1.1 interactive prototype
             </span>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
             <div>
               <h1 className="max-w-4xl text-3xl font-semibold leading-tight text-zinc-50 md:text-5xl md:leading-[1.05]">
-                A small interface for evaluating ideas in the age of infinite generation.
+                A small interface for evaluating ideas in the age of infinite
+                generation.
               </h1>
-              <p className="text-xs text-zinc-500 mt-1">
+              <p className="mt-1 text-xs text-zinc-500">
                 A speculative interface for creative evaluation
               </p>
             </div>
 
             <div className="rounded-2xl border border-zinc-800 bg-black/30 p-4 font-mono text-xs leading-6 text-zinc-400">
               {heroLogs.map((log) => (
-                <div key={log}>{log}</div>
+                <div key={log}>
+                  {log}
+                  {log === heroLogs[heroLogs.length - 1] ? (
+                    <span>{showCursor ? "_" : " "}</span>
+                  ) : null}
+                </div>
               ))}
             </div>
           </div>
@@ -218,6 +304,7 @@ export default function JudgmentConsole() {
                   Describe an idea, concept or direction...
                 </h2>
               </div>
+
               <div className="hidden rounded-full border border-zinc-700 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-400 md:block">
                 text diagnosis
               </div>
@@ -226,26 +313,31 @@ export default function JudgmentConsole() {
             <textarea
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              className="min-h-[280px] w-full rounded-2xl border border-zinc-800 bg-black/40 p-5 font-mono text-sm leading-7 text-zinc-200 outline-none ring-0 placeholder:text-zinc-600 focus:border-lime-400/40"
+              className="min-h-[280px] w-full rounded-2xl border border-zinc-800 bg-black/40 p-5 font-mono text-sm leading-7 text-zinc-200 outline-none placeholder:text-zinc-600 focus:border-lime-400/40"
               placeholder="Paste an idea, concept, line or prompt..."
             />
 
             <div className="mt-5 flex flex-wrap gap-3">
               <button
                 onClick={handleRunDiagnosis}
-                className="rounded-2xl border border-lime-400/40 bg-lime-400/10 px-4 py-2 text-sm font-medium text-lime-200 transition hover:bg-lime-400/20"
+                disabled={isProcessing || !inputValue.trim()}
+                className="rounded-2xl border border-lime-400/40 bg-lime-400/10 px-4 py-2 text-sm font-medium text-lime-200 transition hover:bg-lime-400/20 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Run evaluation
+                {isProcessing ? "processing..." : "Run evaluation"}
               </button>
+
               <button
                 onClick={() => handleLoadSample(activeSample)}
-                className="rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-zinc-100"
+                disabled={isProcessing}
+                className="rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-zinc-100 disabled:opacity-50"
               >
                 Load sample
               </button>
+
               <button
                 onClick={handleClear}
-                className="rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-zinc-100"
+                disabled={isProcessing}
+                className="rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-zinc-100 disabled:opacity-50"
               >
                 Clear
               </button>
@@ -255,13 +347,15 @@ export default function JudgmentConsole() {
               <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.28em] text-zinc-500">
                 Sample prompts
               </p>
+
               <div className="grid gap-3">
                 {(Object.entries(samples) as [SampleKey, string][]).map(
                   ([key, sample]) => (
                     <button
                       key={key}
                       onClick={() => handleLoadSample(key)}
-                      className={`rounded-2xl border px-4 py-4 text-left text-sm leading-6 transition ${
+                      disabled={isProcessing}
+                      className={`rounded-2xl border px-4 py-4 text-left text-sm leading-6 transition disabled:opacity-50 ${
                         activeSample === key
                           ? "border-lime-400/40 bg-lime-400/10 text-lime-100"
                           : "border-zinc-800 bg-black/20 text-zinc-300 hover:border-zinc-600 hover:bg-black/30"
@@ -269,7 +363,7 @@ export default function JudgmentConsole() {
                     >
                       {sample}
                     </button>
-                  ),
+                  )
                 )}
               </div>
             </div>
@@ -286,23 +380,28 @@ export default function JudgmentConsole() {
                     Diagnostic reading
                   </h2>
                 </div>
+
                 <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-500">
-                  live sample state
+                  {metricsStatus}
+                  {isProcessing ? (showCursor ? "_" : " ") : null}
                 </p>
               </div>
 
               <div className="space-y-4">
-                {currentDiagnosis.metrics.map(([label, value]) => (
+                {displayedMetrics.map(([label, value]) => (
                   <div key={label}>
                     <div className="mb-2 flex items-center justify-between text-sm text-zinc-300">
                       <span>{label}</span>
                       <span className="font-mono text-xs text-zinc-500">
-                        {value}/100
+                        {isProcessing ? "--/100" : `${value}/100`}
                       </span>
                     </div>
+
                     <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-lime-300 via-zinc-100 to-lime-200 transition-all duration-500"
+                        className={`h-full rounded-full bg-gradient-to-r from-lime-300 via-zinc-100 to-lime-200 ${
+                          isProcessing ? "transition-all duration-200" : "transition-all duration-500"
+                        }`}
                         style={{ width: `${value}%` }}
                       />
                     </div>
@@ -315,6 +414,7 @@ export default function JudgmentConsole() {
               <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-zinc-500">
                 Verdict
               </p>
+
               <div className="mt-4 space-y-5 text-sm leading-7 text-zinc-300">
                 <div>
                   <h3 className="mb-1 text-base font-semibold text-zinc-100">
@@ -322,18 +422,21 @@ export default function JudgmentConsole() {
                   </h3>
                   <p>{currentDiagnosis.verdictBody}</p>
                 </div>
+
                 <div>
                   <p className="mb-1 font-medium text-zinc-100">
                     What feels alive
                   </p>
                   <p>{currentDiagnosis.feelsAlive}</p>
                 </div>
+
                 <div>
                   <p className="mb-1 font-medium text-zinc-100">
                     What feels generic
                   </p>
                   <p>{currentDiagnosis.feelsGeneric}</p>
                 </div>
+
                 <div>
                   <p className="mb-1 font-medium text-zinc-100">
                     Push further
@@ -355,65 +458,69 @@ export default function JudgmentConsole() {
                 Interpretive log
               </h2>
             </div>
+
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-500">
               human-in-the-loop
             </p>
           </div>
 
           <div className="rounded-2xl border border-zinc-800 bg-black/40 p-5 font-mono text-xs leading-7 text-zinc-400 md:text-sm">
-            {currentDiagnosis.interpretiveLogs.map((log) => (
+            {displayedLogs.map((log, index) => (
               <div
-                key={log}
-                className={
-                  log.includes("recommendation") ? "text-lime-300" : undefined
-                }
+                key={`${log}-${index}`}
+                className={log.includes("recommendation") ? "text-lime-300" : undefined}
               >
                 {log}
               </div>
-
             ))}
+
+            {isProcessing && (
+              <div className="opacity-60">
+                {"> processing"}
+                {showCursor ? "_" : " "}
+              </div>
+            )}
           </div>
 
- <div id="about" className="mt-12 max-w-xl text-sm text-zinc-400">
-    <p>
-      Judgment Console is a conceptual interface exploring how creative judgment
-      might become more legible in the age of generative abundance.
-    </p>
+          <div id="about" className="mt-12 max-w-xl text-sm text-zinc-400">
+            <p>
+              Judgment Console is a conceptual interface exploring how creative
+              judgment might become more legible in the age of generative
+              abundance.
+            </p>
 
-    <p className="mt-3">
-      Instead of generating ideas, this experiment focuses on evaluating them —
-      making subjective criteria slightly more visible, structured, and navigable.
-    </p>
-  </div>
+            <p className="mt-3">
+              Instead of generating ideas, this experiment focuses on evaluating
+              them — making subjective criteria slightly more visible,
+              structured, and navigable.
+            </p>
+          </div>
 
-          <div className="mt-16 text-xs text-zinc-500 border-t border-zinc-800 pt-6">
-  <p>
-    An ongoing study by <span className="text-zinc-300">Andrê</span>
-  </p>
-  <p className="mt-1">
-    On judgment, design systems, and human–AI interaction
-  </p>
+          <div className="mt-16 border-t border-zinc-800 pt-6 text-xs text-zinc-500">
+            <p>
+              An ongoing study by <span className="text-zinc-300">Andrê</span>
+            </p>
+            <p className="mt-1">
+              On judgment, design systems, and human–AI interaction
+            </p>
 
-  <div className="mt-3 flex gap-4">
-    <a
-      href="https://github.com/aviniciussouzas/judgment-console"
-      target="_blank"
-      className="hover:text-zinc-300 underline"
-    >
-      GitHub
-    </a>
+            <div className="mt-3 flex gap-4">
+              <a
+                href="https://github.com/aviniciussouzas/judgment-console"
+                target="_blank"
+                rel="noreferrer"
+                className="underline hover:text-zinc-300"
+              >
+                GitHub
+              </a>
 
-    <a
-      href="#about"
-      className="hover:text-zinc-300 underline"
-    >
-      About
-    </a>
-  </div>
-</div>
+              <a href="#about" className="underline hover:text-zinc-300">
+                About
+              </a>
+            </div>
+          </div>
         </section>
       </main>
     </div>
-    
   );
 }
